@@ -609,56 +609,62 @@ st.info(f"""
 import google.generativeai as genai
 import os
 
-# --- Secure Gemini API Key handling ---
-api_key = st.secrets.get("GEMINI_API_KEY", None) or os.getenv("GEMINI_API_KEY")
+# --- 🔐 API Key Handling (secure + fallback) ---
+# This line first checks Streamlit secrets (for Streamlit Cloud)
+# then OS environment variable (for local use)
+# and finally falls back to a manually defined key (only if both missing)
+api_key = (
+    st.secrets.get("GEMINI_API_KEY", None)
+    or os.getenv("GEMINI_API_KEY")
+    or "AIzaSyBBKgwflgq7lEWn130W8BE_Qask6SYHHVo"  # fallback key (optional, for local testing)
+)
 
-if not api_key:
-    st.warning("⚠️ Gemini API key not found. Please add it under 'Settings → Secrets' in Streamlit Cloud.")
-else:
-    try:
-        genai.configure(api_key=api_key)
-        model_explainer = genai.GenerativeModel("gemini-1.5-flash")
+# Configure Gemini with the detected key
+try:
+    genai.configure(api_key=api_key)
+    model_explainer = genai.GenerativeModel("gemini-1.5-flash")
 
-        # === Construct AI Prompt ===
-        ai_prompt = f"""
-        You are an expert agronomist and satellite data analyst.
-        Interpret the following crop condition parameters and provide a friendly, easy-to-understand report.
+    # === Construct AI Prompt ===
+    ai_prompt = f"""
+    You are an expert agronomist and satellite data analyst.
+    Interpret the following crop condition parameters and provide a friendly, easy-to-understand report.
 
-        ---
-        **Field Metadata:**
-        - Area: {area:.2f} ha
-        - Sowing Month: {sow_m}
-        - Harvest Month: {har_m}
-        - Sowing→Transplant Days: {sow_to_trans_days}
-        - Transplant→Harvest Days: {trans_to_har_days}
-        - Total Duration: {sow_to_trans_days + trans_to_har_days} days
+    ---
+    **Field Metadata:**
+    - Area: {area:.2f} ha
+    - Sowing Month: {sow_m}
+    - Harvest Month: {har_m}
+    - Sowing→Transplant Days: {sow_to_trans_days}
+    - Transplant→Harvest Days: {trans_to_har_days}
+    - Total Duration: {sow_to_trans_days + trans_to_har_days} days
 
-        **Satellite Metrics:**
-        - NDVI: {ndvi_val:.3f}
-        - VV_mean: {VV_mean:.3f}
-        - VH_mean: {VH_mean:.3f}
-        - VH/VV ratio: {VH_VV_ratio:.3f}
-        - Power-transformed ratio: {VH_VV_ratio_trans2:.3f}
+    **Satellite Metrics:**
+    - NDVI: {ndvi_val:.3f}
+    - VV_mean: {VV_mean:.3f}
+    - VH_mean: {VH_mean:.3f}
+    - VH/VV ratio: {VH_VV_ratio:.3f}
+    - Power-transformed ratio: {VH_VV_ratio_trans2:.3f}
 
-        **Predicted Yield:**
-        - {yield_pred:.2f} kg/ha
+    **Predicted Yield:**
+    - {yield_pred:.2f} kg/ha
 
-        ---
-        Provide:
-        1️⃣ A greeting and brief overview of crop health.  
-        2️⃣ NDVI interpretation (vegetation vigor, greenness).  
-        3️⃣ Radar insight (moisture, canopy structure).  
-        4️⃣ Actionable recommendations (fertilizer, irrigation, harvesting).  
-        5️⃣ A concise, motivational closing note for the farmer.  
-        Keep tone friendly and avoid technical jargon.
-        """
+    ---
+    Provide:
+    1️⃣ A greeting and brief overview of crop health.  
+    2️⃣ NDVI interpretation (vegetation vigor, greenness).  
+    3️⃣ Radar insight (moisture, canopy structure).  
+    4️⃣ Actionable recommendations (fertilizer, irrigation, harvesting).  
+    5️⃣ A concise, motivational closing note for the farmer.  
+    Keep tone friendly, simple, and farmer-focused.
+    """
 
-        with st.spinner("🌿 Generating expert agronomic advisory using Gemini..."):
-            ai_response = model_explainer.generate_content(ai_prompt)
+    with st.spinner("🌿 Generating expert agronomic advisory using Gemini..."):
+        ai_response = model_explainer.generate_content(ai_prompt)
 
-        st.subheader("🌾 AI-Powered Agronomic Recommendation")
-        st.markdown(ai_response.text)
+    st.subheader("🌾 AI-Powered Agronomic Recommendation")
+    st.markdown(ai_response.text)
 
-    except Exception as e:
-        st.error("❌ Gemini advisory generation failed.")
-        st.write(e)
+except Exception as e:
+    st.error("❌ Gemini advisory generation failed.")
+    st.write(e)
+
