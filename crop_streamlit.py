@@ -549,59 +549,112 @@ if st.button("🔍 Run Prediction"):
     st.balloons()
 
 # ======================================
-# --- AI Explanation (via Gemini API) ---
+# --- Interpretability & Explanation ---
 # ======================================
+
+st.subheader("🧠 Model Interpretation & Insights")
+
+# --- 1️⃣ Yield Interpretation ---
+if yield_pred < 2500:
+    yield_text = "below average yield. This may indicate suboptimal crop health, limited soil moisture, or stress during the growing season."
+elif 2500 <= yield_pred < 5000:
+    yield_text = "moderate yield, typical for average crop conditions. The crop appears healthy but may not have reached full potential."
+else:
+    yield_text = "high yield potential. Conditions appear favorable, with strong vegetation signals and consistent canopy growth."
+
+st.markdown(f"**Yield Assessment:** The predicted yield of `{yield_pred:.2f} kg/ha` suggests {yield_text}")
+
+# --- 2️⃣ NDVI Analysis ---
+if ndvi_val < 0.3:
+    ndvi_text = "indicates sparse or stressed vegetation — possibly due to poor germination, drought, or nutrient stress."
+elif 0.3 <= ndvi_val < 0.6:
+    ndvi_text = "represents moderate vegetation density, typical of crops in mid-growth or under mild stress."
+else:
+    ndvi_text = "shows dense vegetation, healthy chlorophyll activity, and optimal photosynthetic performance."
+
+st.markdown(f"**NDVI Insight:** NDVI = `{ndvi_val:.3f}` → {ndvi_text}")
+
+# --- 3️⃣ Radar Reflectance Analysis (Sentinel VV/VH) ---
+if VH_VV_ratio < 0.4:
+    radar_text = "suggests a well-developed canopy with minimal soil exposure, indicating good vegetation cover."
+elif 0.4 <= VH_VV_ratio < 0.8:
+    radar_text = "indicates moderate backscatter, consistent with balanced crop density and moisture."
+else:
+    radar_text = "shows high backscatter, which could mean surface roughness, high moisture, or sparse vegetation."
+
+st.markdown(f"**Radar Backscatter Insight:** VH/VV ratio = `{VH_VV_ratio:.3f}` → {radar_text}")
+
+# --- 4️⃣ Temporal Metadata Analysis ---
+month_names = {
+    1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June",
+    7: "July", 8: "August", 9: "September", 10: "October", 11: "November", 12: "December"
+}
+sow_m = month_names.get(int(sow_mon), f"Month {sow_mon}")
+har_m = month_names.get(int(har_mon), f"Month {har_mon}")
+st.markdown(f"**Temporal Insight:** Crop sown in **{sow_m}** and harvested around **{har_m}**. "
+            f"Total growth duration: ~`{sow_to_trans_days + trans_to_har_days}` days, typical for seasonal crops like paddy or maize.")
+
+# --- 5️⃣ Overall Summary ---
+st.info(f"""
+**Summary Interpretation**
+- Predicted yield: `{yield_pred:.2f} kg/ha` → {yield_text}
+- NDVI: `{ndvi_val:.3f}` → {ndvi_text}
+- Radar VH/VV ratio: `{VH_VV_ratio:.3f}` → {radar_text}
+- Sowing–harvest period: {sow_m} to {har_m} (~{sow_to_trans_days + trans_to_har_days} days)
+""")
+
+# ======================================
+# --- AI-Powered Explanation (Gemini) ---
+# ======================================
+
 import google.generativeai as genai
 import os
 
-# 🔐 Set up Gemini API key securely from environment variable
+# Secure Gemini API key from environment or Streamlit secrets
 genai.configure(api_key=st.secrets.get("GEMINI_API_KEY", None) or os.getenv("GEMINI_API_KEY"))
 
 try:
     model_explainer = genai.GenerativeModel("gemini-1.5-flash")
 
-    # Prepare AI prompt with context
     ai_prompt = f"""
-    You are an expert agronomist and data scientist.
-    Based on the following crop and satellite analysis results, explain the findings
-    and provide recommendations to the farmer in clear and actionable terms.
+    You are an expert agronomist and remote sensing analyst.
+    Analyze and explain the following crop condition data in simple, farmer-friendly language.
 
     ---
-    **Input Data Summary:**
+    **Metadata:**
     - Area: {area:.2f} ha
-    - Sowing Month: {sow_mon}
-    - Harvest Month: {har_mon}
+    - Sowing Month: {sow_m}
+    - Harvest Month: {har_m}
     - Sowing → Transplant Days: {sow_to_trans_days}
     - Transplant → Harvest Days: {trans_to_har_days}
 
-    **Computed Satellite Metrics:**
+    **Satellite Features:**
     - NDVI: {ndvi_val:.3f}
     - VV_mean: {VV_mean:.3f}
     - VH_mean: {VH_mean:.3f}
     - VH/VV ratio: {VH_VV_ratio:.3f}
-    - Power-transformed ratio: {VH_VV_ratio_trans2:.3f}
+    - Power-transformed VH/VV ratio: {VH_VV_ratio_trans2:.3f}
 
     **Predicted Yield:**
     - {yield_pred:.2f} kg/ha
 
     ---
-    Now generate a well-structured explanation that includes:
-    1. A friendly greeting and brief summary of the crop health.
-    2. NDVI-based interpretation (vegetation vigor and greenness).
-    3. Radar reflectance interpretation (moisture, canopy density).
-    4. Possible agronomic insights (irrigation, nutrient, or timing suggestions).
-    5. Overall yield assessment and actionable recommendations.
-    6. A short motivational closing note for the farmer.
+    Provide:
+    1. A brief summary of crop health.
+    2. NDVI-based interpretation.
+    3. Radar-based interpretation (moisture, canopy, roughness).
+    4. Practical agronomic recommendations (irrigation, fertilizer, timing).
+    5. A short motivational closing message.
     """
 
-    # Call Gemini API
-    with st.spinner("🧠 Generating expert interpretation using Gemini..."):
+    with st.spinner("🌿 Generating expert-level explanation using Gemini..."):
         ai_response = model_explainer.generate_content(ai_prompt)
 
-    st.subheader("🌿 AI-Powered Agronomic Advisory")
+    st.subheader("🌾 AI-Powered Agronomic Recommendation")
     st.write(ai_response.text)
 
 except Exception as e:
-    st.warning("⚠️ AI advisory unavailable. Please check your Gemini API key or network connection.")
+    st.warning("⚠️ AI advisory unavailable. Please check your Gemini API key or internet connection.")
     st.write(e)
+
 
