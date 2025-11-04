@@ -606,55 +606,59 @@ st.info(f"""
 # ======================================
 # --- AI-Powered Explanation (Gemini) ---
 # ======================================
-
 import google.generativeai as genai
 import os
 
-# Secure Gemini API key from environment or Streamlit secrets
-genai.configure(api_key=st.secrets.get("GEMINI_API_KEY", None) or os.getenv("GEMINI_API_KEY"))
+# Securely configure Gemini API
+api_key = st.secrets.get("GEMINI_API_KEY", None) or os.getenv("GEMINI_API_KEY")
 
-try:
-    model_explainer = genai.GenerativeModel("gemini-1.5-flash")
+if not api_key:
+    st.warning("⚠️ Gemini API key not found. Please add it in Streamlit secrets or as an environment variable.")
+else:
+    try:
+        genai.configure(api_key=api_key)
+        model_explainer = genai.GenerativeModel("gemini-1.5-flash")
 
-    ai_prompt = f"""
-    You are an expert agronomist and remote sensing analyst.
-    Analyze and explain the following crop condition data in simple, farmer-friendly language.
+        # === Structured prompt ===
+        ai_prompt = f"""
+        You are an expert agronomist and satellite data analyst.
+        Interpret the following crop field parameters and provide an explanation suitable for farmers.
 
-    ---
-    **Metadata:**
-    - Area: {area:.2f} ha
-    - Sowing Month: {sow_m}
-    - Harvest Month: {har_m}
-    - Sowing → Transplant Days: {sow_to_trans_days}
-    - Transplant → Harvest Days: {trans_to_har_days}
+        ---
+        **Field Metadata:**
+        - Area: {area:.2f} ha
+        - Sowing Month: {sow_m}
+        - Harvest Month: {har_m}
+        - Days: Sowing→Transplant {sow_to_trans_days}, Transplant→Harvest {trans_to_har_days}
+        - Total Duration: {sow_to_trans_days + trans_to_har_days} days
 
-    **Satellite Features:**
-    - NDVI: {ndvi_val:.3f}
-    - VV_mean: {VV_mean:.3f}
-    - VH_mean: {VH_mean:.3f}
-    - VH/VV ratio: {VH_VV_ratio:.3f}
-    - Power-transformed VH/VV ratio: {VH_VV_ratio_trans2:.3f}
+        **Remote Sensing Features:**
+        - NDVI: {ndvi_val:.3f}
+        - VV_mean: {VV_mean:.3f}
+        - VH_mean: {VH_mean:.3f}
+        - VH/VV ratio: {VH_VV_ratio:.3f}
+        - Power-transformed VH/VV ratio: {VH_VV_ratio_trans2:.3f}
 
-    **Predicted Yield:**
-    - {yield_pred:.2f} kg/ha
+        **Predicted Yield:**
+        - {yield_pred:.2f} kg/ha
 
-    ---
-    Provide:
-    1. A brief summary of crop health.
-    2. NDVI-based interpretation.
-    3. Radar-based interpretation (moisture, canopy, roughness).
-    4. Practical agronomic recommendations (irrigation, fertilizer, timing).
-    5. A short motivational closing message.
-    """
+        ---
+        Write your explanation as:
+        1️⃣ A friendly greeting  
+        2️⃣ A summary of vegetation and yield condition  
+        3️⃣ NDVI interpretation (chlorophyll and growth)  
+        4️⃣ Radar interpretation (moisture, canopy, surface)  
+        5️⃣ Actionable recommendations (fertilizer, irrigation, harvest timing)  
+        6️⃣ A short encouraging conclusion to the farmer  
+        Avoid technical jargon. Keep it simple and human-readable.
+        """
 
-    with st.spinner("🌿 Generating expert-level explanation using Gemini..."):
-        ai_response = model_explainer.generate_content(ai_prompt)
+        with st.spinner("🌿 Generating AI agronomic insights using Gemini..."):
+            ai_response = model_explainer.generate_content(ai_prompt)
 
-    st.subheader("🌾 AI-Powered Agronomic Recommendation")
-    st.write(ai_response.text)
+        st.subheader("🌾 AI-Powered Agronomic Recommendation")
+        st.markdown(ai_response.text)
 
-except Exception as e:
-    st.warning("⚠️ AI advisory unavailable. Please check your Gemini API key or internet connection.")
-    st.write(e)
-
-
+    except Exception as e:
+        st.error("❌ Error generating explanation with Gemini.")
+        st.write(e)
