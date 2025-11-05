@@ -551,57 +551,57 @@ if st.button("🔍 Run Prediction"):
 # ======================================
 # --- Interpretability & Explanation ---
 # ======================================
-
-st.subheader("🧠 Model Interpretation & Insights")
-
-# --- 1️⃣ Yield Interpretation ---
-if yield_pred < 2500:
-    yield_text = "below average yield. This may indicate suboptimal crop health, limited soil moisture, or stress during the growing season."
-elif 2500 <= yield_pred < 5000:
-    yield_text = "moderate yield, typical for average crop conditions. The crop appears healthy but may not have reached full potential."
-else:
-    yield_text = "high yield potential. Conditions appear favorable, with strong vegetation signals and consistent canopy growth."
-
-st.markdown(f"**Yield Assessment:** The predicted yield of `{yield_pred:.2f} kg/ha` suggests {yield_text}")
-
-# --- 2️⃣ NDVI Analysis ---
-if ndvi_val < 0.3:
-    ndvi_text = "indicates sparse or stressed vegetation — possibly due to poor germination, drought, or nutrient stress."
-elif 0.3 <= ndvi_val < 0.6:
-    ndvi_text = "represents moderate vegetation density, typical of crops in mid-growth or under mild stress."
-else:
-    ndvi_text = "shows dense vegetation, healthy chlorophyll activity, and optimal photosynthetic performance."
-
-st.markdown(f"**NDVI Insight:** NDVI = `{ndvi_val:.3f}` → {ndvi_text}")
-
-# --- 3️⃣ Radar Reflectance Analysis (Sentinel VV/VH) ---
-if VH_VV_ratio < 0.4:
-    radar_text = "suggests a well-developed canopy with minimal soil exposure, indicating good vegetation cover."
-elif 0.4 <= VH_VV_ratio < 0.8:
-    radar_text = "indicates moderate backscatter, consistent with balanced crop density and moisture."
-else:
-    radar_text = "shows high backscatter, which could mean surface roughness, high moisture, or sparse vegetation."
-
-st.markdown(f"**Radar Backscatter Insight:** VH/VV ratio = `{VH_VV_ratio:.3f}` → {radar_text}")
-
-# --- 4️⃣ Temporal Metadata Analysis ---
-month_names = {
-    1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June",
-    7: "July", 8: "August", 9: "September", 10: "October", 11: "November", 12: "December"
-}
-sow_m = month_names.get(int(sow_mon), f"Month {sow_mon}")
-har_m = month_names.get(int(har_mon), f"Month {har_mon}")
-st.markdown(f"**Temporal Insight:** Crop sown in **{sow_m}** and harvested around **{har_m}**. "
-            f"Total growth duration: ~`{sow_to_trans_days + trans_to_har_days}` days, typical for seasonal crops like paddy or maize.")
-
-# --- 5️⃣ Overall Summary ---
-st.info(f"""
-**Summary Interpretation**
-- Predicted yield: `{yield_pred:.2f} kg/ha` → {yield_text}
-- NDVI: `{ndvi_val:.3f}` → {ndvi_text}
-- Radar VH/VV ratio: `{VH_VV_ratio:.3f}` → {radar_text}
-- Sowing–harvest period: {sow_m} to {har_m} (~{sow_to_trans_days + trans_to_har_days} days)
-""")
+if "yield_pred" in locals():
+    st.subheader("🧠 Model Interpretation & Insights")
+    
+    # --- 1️⃣ Yield Interpretation ---
+    if yield_pred < 2500:
+        yield_text = "below average yield. This may indicate suboptimal crop health, limited soil moisture, or stress during the growing season."
+    elif 2500 <= yield_pred < 5000:
+        yield_text = "moderate yield, typical for average crop conditions. The crop appears healthy but may not have reached full potential."
+    else:
+        yield_text = "high yield potential. Conditions appear favorable, with strong vegetation signals and consistent canopy growth."
+    
+    st.markdown(f"**Yield Assessment:** The predicted yield of `{yield_pred:.2f} kg/ha` suggests {yield_text}")
+    
+    # --- 2️⃣ NDVI Analysis ---
+    if ndvi_val < 0.3:
+        ndvi_text = "indicates sparse or stressed vegetation — possibly due to poor germination, drought, or nutrient stress."
+    elif 0.3 <= ndvi_val < 0.6:
+        ndvi_text = "represents moderate vegetation density, typical of crops in mid-growth or under mild stress."
+    else:
+        ndvi_text = "shows dense vegetation, healthy chlorophyll activity, and optimal photosynthetic performance."
+    
+    st.markdown(f"**NDVI Insight:** NDVI = `{ndvi_val:.3f}` → {ndvi_text}")
+    
+    # --- 3️⃣ Radar Reflectance Analysis (Sentinel VV/VH) ---
+    if VH_VV_ratio < 0.4:
+        radar_text = "suggests a well-developed canopy with minimal soil exposure, indicating good vegetation cover."
+    elif 0.4 <= VH_VV_ratio < 0.8:
+        radar_text = "indicates moderate backscatter, consistent with balanced crop density and moisture."
+    else:
+        radar_text = "shows high backscatter, which could mean surface roughness, high moisture, or sparse vegetation."
+    
+    st.markdown(f"**Radar Backscatter Insight:** VH/VV ratio = `{VH_VV_ratio:.3f}` → {radar_text}")
+    
+    # --- 4️⃣ Temporal Metadata Analysis ---
+    month_names = {
+        1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June",
+        7: "July", 8: "August", 9: "September", 10: "October", 11: "November", 12: "December"
+    }
+    sow_m = month_names.get(int(sow_mon), f"Month {sow_mon}")
+    har_m = month_names.get(int(har_mon), f"Month {har_mon}")
+    st.markdown(f"**Temporal Insight:** Crop sown in **{sow_m}** and harvested around **{har_m}**. "
+                f"Total growth duration: ~`{sow_to_trans_days + trans_to_har_days}` days, typical for seasonal crops like paddy or maize.")
+    
+    # --- 5️⃣ Overall Summary ---
+    st.info(f"""
+    **Summary Interpretation**
+    - Predicted yield: `{yield_pred:.2f} kg/ha` → {yield_text}
+    - NDVI: `{ndvi_val:.3f}` → {ndvi_text}
+    - Radar VH/VV ratio: `{VH_VV_ratio:.3f}` → {radar_text}
+    - Sowing–harvest period: {sow_m} to {har_m} (~{sow_to_trans_days + trans_to_har_days} days)
+    """)
 
 # ======================================
 # --- AI Explanation (via Gemini API) ---
