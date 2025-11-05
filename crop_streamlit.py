@@ -574,15 +574,18 @@ if "yield_pred" in locals():
     current_year = datetime.datetime.now().year
     
     # --- Step 2: Configure Gemini (secure API key or fallback to hardcoded for now) ---
-    api_key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY") or "AIzaSyBBKgwflgq7lEWn130W8BE_Qask6SYHHVo"
-    genai.configure(api_key=api_key)
-    
-    # --- Step 3: Initialize Gemini model ---
+    # --- Secure Gemini API Key setup ---
+    genai.configure(api_key="AIzaSyBBKgwflgq7lEWn130W8BE_Qask6SYHHVo")
+
+    # ✅ Use a supported model
     try:
-        model_price = genai.GenerativeModel("gemini-1.5-flash-latest")
+        model_explainer = genai.GenerativeModel("gemini-2.0-flash")
     except Exception:
-        st.warning("⚠️ gemini-1.5-flash-latest not available. Falling back to gemini-1.5-pro-latest.")
-        model_price = genai.GenerativeModel("gemini-1.5-pro-latest")
+        st.warning("⚠️ Unable to initialize Gemini model. Falling back to gemini-1.5-pro.")
+        try:
+            model_explainer = genai.GenerativeModel("gemini-1.5-pro")
+        except:
+            model_explainer = None
     
     # --- Step 4: Prepare pricing dataset prompt ---
     prompt_price = f"""
@@ -592,25 +595,34 @@ if "yield_pred" in locals():
     """
     
     # --- Step 5: Query Gemini (Simplified for direct value response) ---
+    # --- Step 5: Query Gemini (Simplified for direct value response) ---
     try:
         with st.spinner("📊 Fetching Tamil Nadu paddy price for the current season..."):
             price_response = model_price.generate_content(prompt_price)
             response_text = price_response.text.strip()
     
-            # The response is usually like "₹25.00" — so we directly clean it up
-            response_text = response_text.replace("₹", "").replace("/kg", "").replace("per kg", "").strip()
+            # The response is usually like "₹25.00" — so clean it up
+            response_text = (
+                response_text.replace("₹", "")
+                             .replace("Rs", "")
+                             .replace("per kg", "")
+                             .replace("/kg", "")
+                             .strip()
+            )
     
+            # Parse numeric safely
             try:
                 paddy_price_avg = float(response_text)
             except ValueError:
-                paddy_price_avg = 25.0  # fallback if parsing fails
+                paddy_price_avg = 25.0  # fallback if Gemini returns anything unexpected
     
         st.success(f"🌾 Using {current_year}-{current_year+1} KMS price: **₹{paddy_price_avg:.2f}/kg**")
     
     except Exception as e:
-        st.warning("⚠️ Could not fetch price from Gemini — using default ₹22.00/kg.")
+        st.warning("⚠️ Could not fetch price from Gemini — using default ₹25.00/kg.")
         st.caption(str(e))
         paddy_price_avg = 25.0
+
 
     
     # # --- 1️⃣ Yield Interpretation ---
