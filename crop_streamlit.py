@@ -72,18 +72,19 @@ cnn_model_file = st.sidebar.file_uploader("Upload CNN Model (.h5)", type=["h5"])
 lgbm_model_file = st.sidebar.file_uploader("Upload LightGBM Model (.pkl)", type=["pkl", "joblib"])
 
 # --- Input Uploads ---
-st.subheader("🌍 Upload Input Data")
-landsat_file = st.file_uploader("Upload Landsat Patch (.npz)", type=["npz"])
-sentinel_file = st.file_uploader("Upload Sentinel Patch (.npz)", type=["npz"])
+st.subheader("🌍 Upload Input Data & 📋 Metadata Inputs")
+# landsat_file = st.file_uploader("Upload Landsat Patch (.npz)", type=["npz"])
+# sentinel_file = st.file_uploader("Upload Sentinel Patch (.npz)", type=["npz"])
 
 # --- Metadata Inputs ---
 # --- Metadata Inputs ---
-st.subheader("📋 Metadata Inputs")
+# st.subheader("📋 Metadata Inputs")
 
 # Create two equal-width columns
 col1, col2 = st.columns(2)
 
 with col1:
+    landsat_file = st.file_uploader("Upload Landsat Patch (.npz)", type=["npz"])
     area = st.number_input("Area (ha)", value=1.0, format="%.2f")
     sow_mon = st.number_input("Sowing Month (numeric/encoded)", value=6.0)
     sow_to_trans_days = st.number_input("Sowing to Transplanting Days", value=25.0)
@@ -95,6 +96,7 @@ with col1:
     )
 
 with col2:
+    sentinel_file = st.file_uploader("Upload Sentinel Patch (.npz)", type=["npz"])
     har_mon = st.number_input("Harvest Month (numeric/encoded)", value=12.0)
     trans_to_har_days = st.number_input("Transplanting to Harvest Days", value=100.0)
     investment_cost_per_ha = st.number_input(
