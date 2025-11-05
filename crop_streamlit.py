@@ -571,60 +571,59 @@ if "yield_pred" in locals():
     import re
     
     # --- Step 1: Get current year using Python ---
-    current_year = datetime.datetime.now().year
+    # current_year = datetime.datetime.now().year
     
     # --- Step 2: Configure Gemini (secure API key or fallback to hardcoded for now) ---
     # --- Secure Gemini API Key setup ---
-    genai.configure(api_key="AIzaSyBBKgwflgq7lEWn130W8BE_Qask6SYHHVo")
+    # genai.configure(api_key="AIzaSyBBKgwflgq7lEWn130W8BE_Qask6SYHHVo")
 
-    # ✅ Use a supported model
-    try:
-        model_explainer = genai.GenerativeModel("gemini-2.0-flash")
-    except Exception:
-        st.warning("⚠️ Unable to initialize Gemini model. Falling back to gemini-1.5-pro.")
-        try:
-            model_explainer = genai.GenerativeModel("gemini-1.5-pro")
-        except:
-            model_explainer = None
+    # # ✅ Use a supported model
+    # try:
+    #     model_explainer = genai.GenerativeModel("gemini-2.0-flash")
+    # except Exception:
+    #     st.warning("⚠️ Unable to initialize Gemini model. Falling back to gemini-1.5-pro.")
+    #     try:
+    #         model_explainer = genai.GenerativeModel("gemini-1.5-pro")
+    #     except:
+    #         model_explainer = None
     
-    # --- Step 4: Prepare pricing dataset prompt ---
-    prompt_price = f"""
-    Based on the following Tamil Nadu paddy procurement data, return the effective procurement price
-    (including state incentive) for the {current_year}-{current_year+1} Kharif Marketing Season
-    for **Common Paddy**, expressed as a single numeric value with the unit ₹/kg and nothing else.
-    """
+    # # --- Step 4: Prepare pricing dataset prompt ---
+    # prompt_price = f"""
+    # Based on the following Tamil Nadu paddy procurement data, return the effective procurement price
+    # (including state incentive) for the {current_year}-{current_year+1} Kharif Marketing Season
+    # for **Common Paddy**, expressed as a single numeric value with the unit ₹/kg and nothing else.
+    # """
     
-    # --- Step 5: Query Gemini (Simplified for direct value response) ---
-    # --- Step 5: Query Gemini (Simplified for direct value response) ---
-    try:
-        with st.spinner("📊 Fetching Tamil Nadu paddy price for the current season..."):
-            price_response = model_price.generate_content(prompt_price)
-            response_text = price_response.text.strip()
+    # # --- Step 5: Query Gemini (Simplified for direct value response) ---
+    # # --- Step 5: Query Gemini (Simplified for direct value response) ---
+    # try:
+    #     with st.spinner("📊 Fetching Tamil Nadu paddy price for the current season..."):
+    #         price_response = model_price.generate_content(prompt_price)
+    #         response_text = price_response.text.strip()
     
-            # The response is usually like "₹25.00" — so clean it up
-            response_text = (
-                response_text.replace("₹", "")
-                             .replace("Rs", "")
-                             .replace("per kg", "")
-                             .replace("/kg", "")
-                             .strip()
-            )
+    #         # The response is usually like "₹25.00" — so clean it up
+    #         response_text = (
+    #             response_text.replace("₹", "")
+    #                          .replace("Rs", "")
+    #                          .replace("per kg", "")
+    #                          .replace("/kg", "")
+    #                          .strip()
+    #         )
     
-            # Parse numeric safely
-            try:
-                paddy_price_avg = float(response_text)
-            except ValueError:
-                paddy_price_avg = 25.0  # fallback if Gemini returns anything unexpected
+    #         # Parse numeric safely
+    #         try:
+    #             paddy_price_avg = float(response_text)
+    #         except ValueError:
+    #             paddy_price_avg = 25.0  # fallback if Gemini returns anything unexpected
     
-        st.success(f"🌾 Using {current_year}-{current_year+1} KMS price: **₹{paddy_price_avg:.2f}/kg**")
+    #     st.success(f"🌾 Using {current_year}-{current_year+1} KMS price: **₹{paddy_price_avg:.2f}/kg**")
     
-    except Exception as e:
-        st.warning("⚠️ Could not fetch price from Gemini — using default ₹25.00/kg.")
-        st.caption(str(e))
-        paddy_price_avg = 25.0
+    # except Exception as e:
+    #     st.warning("⚠️ Could not fetch price from Gemini — using default ₹25.00/kg.")
+    #     st.caption(str(e))
+    #     paddy_price_avg = 25.0
+    paddy_price_avg = 25.0
 
-
-    
     # # --- 1️⃣ Yield Interpretation ---
     # if yield_pred < 2500:
     #     yield_text = "below average yield. This may indicate suboptimal crop health, limited soil moisture, or stress during the growing season."
